@@ -15,7 +15,7 @@ def read_images_from_lmdb(db_name, visualize):
     for idx, (key, value) in enumerate(cursor):
         datum = caffe_pb2.Datum()
         datum.ParseFromString(value)
-        X.append(np.array(datum_to_array(datum)))
+        X.append(np.array(datum_to_array(datum)).swapaxes(0, 2))
         y.append(datum.label)
         idxs.append(idx)
     if visualize:
