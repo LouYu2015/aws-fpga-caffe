@@ -9,10 +9,8 @@ import tables
 HDF_PATH = "data"
 
 
-def normalize_and_rgb(images):
+def normalize_and_rgb(img: np.ndarray):
     '''
-    From https://github.com/nhanvtran/MachineLearningNotebooks/blob/nvt/bwcustomweights-validate/project-brainwave/utils.py
-
     Normalize the image and covert to 3 channels by duplication
     '''
     # normalize image to 0-255 per image.
@@ -25,6 +23,11 @@ def normalize_and_rgb(images):
 
 
 def read_images(fileList):
+    '''
+    Read images from a list of HDF5 files.
+
+    Yield (image, label)
+    '''
     for fileName in fileList:
         with tables.open_file(fileName, 'r') as file:
             for id, img in enumerate(file.root.img_pt):
@@ -32,6 +35,9 @@ def read_images(fileList):
 
 
 def count_events(fileList):
+    '''
+    Count the total number of events in the list of files
+    '''
     nEvents = 0
     for fileName in fileList:
         with tables.open_file(fileName, 'r') as file:
@@ -40,6 +46,9 @@ def count_events(fileList):
 
 
 def process_images(imgList):
+    '''
+    Apply pre-processing function on the image and yield (image, label) again
+    '''
     for img, label in imgList:
         yield normalize_and_rgb(img), label
 
@@ -57,6 +66,9 @@ def test_read_images():
 
 
 def write_images_to_lmdb(data, db_name):
+    '''
+    write (image, label) pairs from data to the databased located in `db_name`
+    '''
     env = lmdb.Environment(db_name, map_size=10*1024**3)
     txn = env.begin(write=True, buffers=True)
     try:
