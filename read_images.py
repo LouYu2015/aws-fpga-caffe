@@ -21,7 +21,7 @@ def read_images_from_lmdb(db_name, visualize):
     if visualize:
         print("Visualizing a few images...")
         for i in range(9):
-            img = X[i]
+            img = X[i]**(1/8)
             plt.subplot(3,3,i+1)
             plt.imshow(img)
             plt.title(y[i])
