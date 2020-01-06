@@ -59,18 +59,27 @@ def test_read_images():
 def write_images_to_lmdb(data, db_name):
     env = lmdb.Environment(db_name, map_size=10*1024**3)
     txn = env.begin(write=True, buffers=True)
-    for idx, (img, label) in enumerate(data):
-        img = np.swapaxes(img, 0, 2)
-        datum = array_to_datum(img, label)
-        str_id = '{:08}'.format(idx)
-        txn.put(str_id.encode('ascii'), datum.SerializeToString())
-        if (idx % 1000) == 0:
-            txn.commit()
-            txn = env.begin(write=True, buffers=True)
-        if idx > 100:
-            break
-    txn.commit()
-    env.close()
+    try:
+        for idx, (img, label) in enumerate(data):
+            # Convert shape from (Width, Height, Channel) to (Channel, Height, Width)
+            img = np.swapaxes(img, 0, 2)
+
+            # Save data
+            datum = array_to_datum(img, label)
+            str_id = '{:08}'.format(idx)
+            txn.put(str_id.encode('ascii'), datum.SerializeToString())
+
+            # Commit for every 1000 images
+            if (idx % 1000) == 0:
+                txn.commit()
+                txn = env.begin(write=True, buffers=True)
+
+            # Early stop
+            if idx > 100:
+                break
+    finally:
+        txn.commit()
+        env.close()
 
 
 def main():
