@@ -1,12 +1,7 @@
-'''
-Idea from http://shengshuyang.github.io/hook-up-lmdb-with-caffe-in-python.html
-'''
-import caffe
 import lmdb
 import numpy as np
 import matplotlib.pyplot as plt
-from caffe.proto import caffe_pb2
-from caffe.io import datum_to_array, array_to_datum
+from caffe.io import array_to_datum
 import os
 import glob
 import tables
@@ -17,6 +12,8 @@ HDF_PATH = "data"
 def normalize_and_rgb(images):
     '''
     From https://github.com/nhanvtran/MachineLearningNotebooks/blob/nvt/bwcustomweights-validate/project-brainwave/utils.py
+
+    Normalize the image and covert to 3 channels by duplication
     '''
     import numpy as np
     # normalize image to 0-255 per image.
@@ -45,6 +42,14 @@ def read_images(fileList):
                 yield img, np.argmax(file.root.label[id])
 
 
+def count_events(fileList):
+    nEvents = 0
+    for fileName in fileList:
+        with tables.open_file(fileName, 'r') as file:
+            nEvents += len(file.root.label)
+    return nEvents
+
+
 def process_images(imgList):
     for img, label in imgList:
         yield normalize_and_rgb(img), label
@@ -62,25 +67,37 @@ def test_read_images():
         plt.show()
 
 
-def write_images_to_lmdb():
-    files = glob.glob(os.path.join(HDF_PATH, "test_*"))
-    print(files)
-    # for root, dirs, files in os.walk(img_dir, topdown = False):
-    #     if root != img_dir:
-    #         continue
-    #     map_size = 64*64*3*2*len(files)
-    #     env = lmdb.Environment(db_name, map_size=map_size)
-    #     txn = env.begin(write=True,buffers=True)
-    #     for idx, name in enumerate(files):
-    #         X = mp.imread(os.path.join(root, name))
-    #         y = 1
-    #         datum = array_to_datum(X,y)
-    #         str_id = '{:08}'.format(idx)
-    #         txn.put(str_id.encode('ascii'), datum.SerializeToString())
-    # txn.commit()
-    # env.close()
-    # print " ".join(["Writing to", db_name, "done!"])
+def write_images_to_lmdb(data, db_name):
+    env = lmdb.Environment(db_name, map_size=10*1024**3)
+    txn = env.begin(write=True, buffers=True)
+    for idx, (img, label) in enumerate(data):
+        img = np.swapaxes(img, 0, 2)
+        datum = array_to_datum(img, label)
+        str_id = '{:08}'.format(idx)
+        txn.put(str_id.encode('ascii'), datum.SerializeToString())
+        if (idx % 1000) == 0:
+            txn.commit()
+            txn = env.begin(write=True, buffers=True)
+        if idx > 100:
+            break
+    txn.commit()
+    env.close()
+
+
+def main():
+    import tqdm
+
+    files = glob.glob(os.path.join(HDF_PATH, "train_*"))
+    print("Using files:", files)
+    nEvents = count_events(files)
+    print("Number of events:", nEvents)
+
+    data = read_images(files)
+    print("Writing to database")
+    data = tqdm.tqdm(data, total=nEvents)
+    data = process_images(data)
+    write_images_to_lmdb(data, "train.mdb")
 
 
 if __name__ == '__main__':
-    test_read_images()
+    main()
