@@ -1,32 +1,10 @@
 name: "ResNet-50"
-layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  top: "label"
-  include {
-    phase: TRAIN
-  }
-  data_param {
-    source: "train.mdb" # location of the training samples
-    batch_size: 32 # how many samples are grouped into one mini-batch
-    backend: LMDB
-  }
-}
-layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  top: "label"
-  include {
-    phase: TEST
-  }
-  data_param {
-    source: "train.mdb" # location of the validation samples
-    batch_size: 50
-    backend: LMDB
-  }
-}
+input: "data"
+input_dim: 1
+input_dim: 3
+input_dim: 224
+input_dim: 224
+
 layer {
 	bottom: "data"
 	top: "conv1"
@@ -2325,38 +2303,18 @@ layer {
 
 layer {
 	bottom: "pool5"
-	top: "fc_output"
-	name: "fc_output"
+	top: "fc1000"
+	name: "fc1000"
 	type: "InnerProduct"
 	inner_product_param {
-		num_output: 2
+		num_output: 1000
 	}
 }
 
 layer {
-	bottom: "fc_output"
+	bottom: "fc1000"
 	top: "prob"
 	name: "prob"
 	type: "Softmax"
-}
-
-
-layer {
-  name: "accuracy"
-  type: "Accuracy"
-  bottom: "fc_output"
-  bottom: "label"
-  top: "accuracy"
-  include {
-    phase: TEST
-  }
-}
-
-layer {
-  name: "loss"
-  type: "SoftmaxWithLoss"
-  bottom: "fc_output"
-  bottom: "label"
-  top: "loss"
 }
 

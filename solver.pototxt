@@ -1,4 +1,4 @@
-net: "model.pototxt" # path to the network definition
+net: "ResNet-50.prototxt" # path to the network definition
 test_iter: 1 # how many mini-batches to test in each validation phase
 test_interval: 1 # how often do we call the test phase
 base_lr: 0.001 # base learning rate
@@ -10,5 +10,5 @@ max_iter: 100
 momentum: 0.9 
 weight_decay: 0.0005 # regularization!
 snapshot: 50 # taking snapshot is like saving your progress in a game
-snapshot_prefix: "snapshot/"
-solver_mode: GPU
+snapshot_prefix: "snapshot_resnet50/"
+solver_mode: CPU
