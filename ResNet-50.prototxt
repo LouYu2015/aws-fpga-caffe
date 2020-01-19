@@ -1,8 +1,10 @@
 name: "ResNet-50"
 layer {
 	name: "data"
-	type: "Input"
+	type: "HDF5Data"
 	top: "data"
+	top: "img_pt"
+	top: "label"
 	input_param {
 		shape {
 			dim: 1
