@@ -11,4 +11,4 @@ momentum: 0.9
 weight_decay: 0.0005 # regularization!
 snapshot: 50 # taking snapshot is like saving your progress in a game
 snapshot_prefix: "snapshot_resnet50/"
-solver_mode: CPU
+solver_mode: GPU

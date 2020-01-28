@@ -1,1 +1,2 @@
-rsync -e "ssh -i ~/louyu27-aws-us-west.pem" -ravz --progress . ubuntu@ec2-54-202-149-245.us-west-2.compute.amazonaws.com:/home/ubuntu/project --copy-links
+# rsync -ravz --progress . ylou@cmslpc-sl7.fnal.gov:~/caffe --copy-links
+rsync -e "ssh -i ~/louyu27-aws-us-west.pem" -ravz --progress . ylou@cmslpc-sl7.fnal.gov:~/private/ --copy-links
